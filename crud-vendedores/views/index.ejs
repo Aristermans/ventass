@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Vendedores</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #3b82f6;
+            --light-color: #f3f4f6;
+            --dark-color: #1f2937;
+        }
+        
+        body {
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0 !important;
+            padding: 1rem;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: white !important;
+        }
+        
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        
+        .table th {
+            background-color: #e5e7eb;
+            color: #374151;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+        
+        .table tr:hover {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-success {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        
+        .btn-success:hover {
+            background-color: #059669;
+            border-color: #059669;
+        }
+        
+        .btn-danger {
+            background-color: #ef4444;
+            border-color: #ef4444;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+            border-color: #dc2626;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+        }
+        
+        .page-container {
+            padding: 2rem 0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #d1d5db;
+        }
+        
+        .search-card {
+            margin-bottom: 1.5rem;
+        }
+        
+        .action-buttons .btn {
+            margin-right: 0.25rem;
+        }
+
+        .export-buttons {
+            margin-top: 1rem;
+        }
+        
+        /* Estilos para la paginación */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .pagination .page-link {
+            color: var(--primary-color);
+        }
+        
+        .pagination-info {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .per-page-selector {
+            width: auto;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/vendedores">
+                <i class="bi bi-people-fill me-2"></i>Sistema de Vendedores
+            </a>
+        </div>
+    </nav>
+
+    <div class="container page-container">
+        <div class="row mb-4">
+            <div class="col">
+                <h2 class="mb-4 text-dark">
+                    <i class="bi bi-list-ul me-2"></i>Gestión de Vendedores
+                </h2>
+            </div>
+        </div>
+        
+        <!-- Tarjeta de búsqueda -->
+        <div class="card search-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-search me-2"></i>Búsqueda de Vendedores</span>
+                <div>
+                    <a href="/vendedores/nuevo" class="btn btn-success btn-sm">
+                        <i class="bi bi-plus-lg me-1"></i>Nuevo Vendedor
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="/vendedores" method="GET" id="searchForm">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" name="busqueda" 
+                                       placeholder="Buscar vendedor..." 
+                                       value="<%= locals.busqueda || '' %>">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="tipo" class="form-select">
+                                <option value="todos" <%= locals.tipo === 'todos' ? 'selected' : '' %>>Todos los campos</option>
+                                <option value="id" <%= locals.tipo === 'id' ? 'selected' : '' %>>Por ID</option>
+                                <option value="nombre" <%= locals.tipo === 'nombre' ? 'selected' : '' %>>Por Nombre</option>
+                                <option value="apellido" <%= locals.tipo === 'apellido' ? 'selected' : '' %>>Por Apellido</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select name="porPagina" class="form-select" onchange="document.getElementById('searchForm').submit()">
+                                <option value="5" <%= locals.paginacion && locals.paginacion.porPagina === 5 ? 'selected' : '' %>>5 por página</option>
+                                <option value="10" <%= locals.paginacion && locals.paginacion.porPagina === 10 ? 'selected' : '' %>>10 por página</option>
+                                <option value="15" <%= locals.paginacion && locals.paginacion.porPagina === 15 ? 'selected' : '' %>>15 por página</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search me-1"></i>Buscar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Tarjeta de resultados -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-table me-2"></i>Lista de Vendedores</span>
+                <div class="export-buttons">
+                    <a href="/vendedores/exportar-pdf" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+                    </a>
+                    <a href="/vendedores/exportar-csv" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-file-earmark-excel me-1"></i>CSV
+                    </a>
+                    <a href="/vendedores/exportar-html" class="btn btn-outline-primary btn-sm" target="_blank">
+                        <i class="bi bi-file-earmark-richtext me-1"></i>HTML
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <% if (locals.vendedores && vendedores.length > 0) { %>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Apellido</th>
+                                    <th>Celular</th>
+                                    <th>Distrito</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% vendedores.forEach(function(vendedor) { %>
+                                    <tr>
+                                        <td><%= vendedor.id_ven %></td>
+                                        <td><%= vendedor.nom_ven %></td>
+                                        <td><%= vendedor.ape_ven %></td>
+                                        <td><%= vendedor.cel_ven %></td>
+                                        <td><%= vendedor.distrito %></td>
+                                        <td class="action-buttons">
+                                            <a href="/vendedores/editar/<%= vendedor.id_ven %>" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="#" onclick="confirmarEliminar('<%= vendedor.id_ven %>')" class="btn btn-sm btn-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Paginación -->
+                    <% if (locals.paginacion) { %>
+                        <div class="pagination-info">
+                            Mostrando <%= vendedores.length %> de <%= paginacion.total %> vendedores
+                        </div>
+                        <div class="pagination-container">
+                            <nav aria-label="Navegación de páginas">
+                                <ul class="pagination">
+                                    <% if (paginacion.actual > 1) { %>
+                                        <li class="page-item">
+                                            <a class="page-link" href="/vendedores?pagina=<%= paginacion.actual - 1 %>&porPagina=<%= paginacion.porPagina %>&busqueda=<%= locals.busqueda || '' %>&tipo=<%= locals.tipo || 'todos' %>">
+                                                Anterior
+                                            </a>
+                                        </li>
+                                    <% } else { %>
+                                        <li class="page-item disabled">
+                                            <span class="page-link">Anterior</span>
+                                        </li>
+                                    <% } %>
+                                    
+                                    <% for (let i = 1; i <= paginacion.paginas; i++) { %>
+                                        <li class="page-item <%= paginacion.actual === i ? 'active' : '' %>">
+                                            <a class="page-link" href="/vendedores?pagina=<%= i %>&porPagina=<%= paginacion.porPagina %>&busqueda=<%= locals.busqueda || '' %>&tipo=<%= locals.tipo || 'todos' %>">
+                                                <%= i %>
+                                            </a>
+                                        </li>
+                                    <% } %>
+                                    
+                                    <% if (paginacion.actual < paginacion.paginas) { %>
+                                        <li class="page-item">
+                                            <a class="page-link" href="/vendedores?pagina=<%= paginacion.actual + 1 %>&porPagina=<%= paginacion.porPagina %>&busqueda=<%= locals.busqueda || '' %>&tipo=<%= locals.tipo || 'todos' %>">
+                                                Siguiente
+                                            </a>
+                                        </li>
+                                    <% } else { %>
+                                        <li class="page-item disabled">
+                                            <span class="page-link">Siguiente</span>
+                                        </li>
+                                    <% } %>
+                                </ul>
+                            </nav>
+                        </div>
+                    <% } %>
+                <% } else { %>
+                    <div class="empty-state">
+                        <i class="bi bi-search"></i>
+                        <h4>No se encontraron vendedores</h4>
+                        <p>Intenta con otra búsqueda o <a href="/vendedores">ver todos</a>.</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script para confirmar eliminación -->
+    <script>
+        function confirmarEliminar(id) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "No podrás revertir esta acción",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `/vendedores/eliminar/${id}`;
+                }
+            });
+        }
+        
+        // Buscar al presionar Enter
+        document.querySelector('input[name="busqueda"]').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('searchForm').submit();
+            }
+        });
+    </script>
+</body>
+</html>
