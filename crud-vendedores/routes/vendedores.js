@@ -5,9 +5,7 @@ const VendedorController = require("../controllers/vendedor.controller");
 // Listar vendedores con opción de búsqueda y paginación
 router.get("/", VendedorController.listar);
 
-// Nuevas rutas para paginación y búsqueda
-router.get("/paginado", VendedorController.listarPaginado);
-router.get("/buscar-paginado", VendedorController.buscarPaginado);
+
 
 // Formulario de nuevo vendedor
 router.get("/nuevo", VendedorController.mostrarFormularioNuevo);
