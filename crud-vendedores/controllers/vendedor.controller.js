@@ -4,17 +4,17 @@ const path = require("path");
 class VendedorController {
   static async listar(req, res) {
     const { busqueda, tipo, pagina = 1, porPagina = 10 } = req.query;
-    
+
     // Convertir a números los parámetros de paginación
     const paginaNum = parseInt(pagina, 10) || 1;
     const porPaginaNum = parseInt(porPagina, 10) || 10;
-    
+
     try {
       let resultado;
-      
+
       if (busqueda && tipo) {
         if (tipo === "todos" || tipo === "nombre" || tipo === "apellido") {
-          resultado = await VendedorModel.buscarPaginado(busqueda, paginaNum, porPaginaNum);
+          resultado = await VendedorModel.buscarPaginado(busqueda, tipo, paginaNum, porPaginaNum);
         } else if (tipo === "id") {
           // Ahora usamos buscarPorId que es el método correcto
           const vendedores = await VendedorModel.buscarPorId(busqueda);
@@ -37,7 +37,7 @@ class VendedorController {
       const totalPaginas = Math.ceil(totalVendedores / porPaginaNum);
 
       const distritos = await VendedorModel.listarDistritos();
-      
+
       // Renderizamos la vista con todos los datos normalizados
       res.render("index", {
         vendedores: vendedores,
@@ -73,52 +73,52 @@ class VendedorController {
   static async mostrarFormularioNuevo(req, res) {
     try {
       const distritos = await VendedorModel.listarDistritos();
-      res.render("form_vendedor", { 
-        vendedor: {}, 
-        distritos, 
+      res.render("form_vendedor", {
+        vendedor: {},
+        distritos,
         accion: "nuevo",
-        titulo: "Nuevo Vendedor" 
+        titulo: "Nuevo Vendedor"
       });
     } catch (error) {
       console.error("Error al mostrar formulario:", error);
-      res.status(500).render("error", { 
-        mensaje: "Error al cargar el formulario", 
-        error: error.message 
+      res.status(500).render("error", {
+        mensaje: "Error al cargar el formulario",
+        error: error.message
       });
     }
   }
 
   static async crear(req, res) {
     const { nom_ven, ape_ven, cel_ven, id_distrito } = req.body;
-    
+
     try {
       await VendedorModel.crear(nom_ven, ape_ven, cel_ven, id_distrito);
       res.redirect("/vendedores");
     } catch (error) {
       console.error("Error al crear vendedor:", error);
       const distritos = await VendedorModel.listarDistritos().catch(() => []);
-      res.status(500).render("form_vendedor", { 
-        vendedor: req.body, 
-        distritos, 
+      res.status(500).render("form_vendedor", {
+        vendedor: req.body,
+        distritos,
         accion: "nuevo",
         error: `Error al crear vendedor: ${error.message}`,
-        titulo: "Nuevo Vendedor" 
+        titulo: "Nuevo Vendedor"
       });
     }
   }
 
   static async mostrarFormularioEditar(req, res) {
     const id = req.params.id;
-    
+
     try {
       const vendedores = await VendedorModel.buscarPorId(id);
       if (vendedores.length === 0) {
-        return res.status(404).render("error", { 
-          mensaje: "Vendedor no encontrado", 
-          error: `No se encontró ningún vendedor con ID ${id}` 
+        return res.status(404).render("error", {
+          mensaje: "Vendedor no encontrado",
+          error: `No se encontró ningún vendedor con ID ${id}`
         });
       }
-      
+
       const distritos = await VendedorModel.listarDistritos();
       res.render("form_vendedor", {
         vendedor: vendedores[0],
@@ -128,9 +128,9 @@ class VendedorController {
       });
     } catch (error) {
       console.error("Error al mostrar formulario de edición:", error);
-      res.status(500).render("error", { 
-        mensaje: "Error al cargar el formulario de edición", 
-        error: error.message 
+      res.status(500).render("error", {
+        mensaje: "Error al cargar el formulario de edición",
+        error: error.message
       });
     }
   }
@@ -138,38 +138,38 @@ class VendedorController {
   static async actualizar(req, res) {
     const id = req.params.id;
     const { nom_ven, ape_ven, cel_ven, id_distrito } = req.body;
-    
+
     try {
       await VendedorModel.actualizar(id, nom_ven, ape_ven, cel_ven, id_distrito);
       res.redirect("/vendedores");
     } catch (error) {
       console.error("Error al actualizar vendedor:", error);
       const distritos = await VendedorModel.listarDistritos().catch(() => []);
-      res.status(500).render("form_vendedor", { 
-        vendedor: { ...req.body, id_ven: id }, 
-        distritos, 
+      res.status(500).render("form_vendedor", {
+        vendedor: { ...req.body, id_ven: id },
+        distritos,
         accion: "editar",
         error: `Error al actualizar vendedor: ${error.message}`,
-        titulo: "Editar Vendedor" 
+        titulo: "Editar Vendedor"
       });
     }
   }
 
   static async eliminar(req, res) {
     const id = req.params.id;
-    
+
     try {
       await VendedorModel.eliminar(id);
       res.redirect("/vendedores");
     } catch (error) {
       console.error("Error al eliminar vendedor:", error);
-      res.status(500).render("error", { 
-        mensaje: "Error al eliminar vendedor", 
-        error: error.message 
+      res.status(500).render("error", {
+        mensaje: "Error al eliminar vendedor",
+        error: error.message
       });
     }
   }
-  
+
   static async exportarPDF(req, res) {
     try {
       const vendedores = await VendedorModel.listarTodos();
@@ -282,17 +282,13 @@ class VendedorController {
       vendedores.forEach((v) => {
         html += `<tr><td>${v.id_ven}</td><td>${v.nom_ven}</td><td>${v.ape_ven}</td><td>${v.cel_ven}</td><td>${v.distrito}</td></tr>`;
       });
-
-      html += `</tbody></table>
-      <button class="print-btn" onclick="window.print()">Imprimir / Guardar como PDF</button>
-      </body>
-      </html>`;
+      html += `</tbody></table></body></html>`;
 
       res.setHeader("Content-Type", "text/html");
       res.send(html);
     } catch (error) {
-      console.error("Error al generar HTML:", error);
-      res.status(500).send(`<p>Error al generar la vista: ${error.message}</p>`);
+      console.error("Error en exportarHTML:", error);
+      res.status(500).json({ success: false, message: "Error al generar HTML" });
     }
   }
 }
